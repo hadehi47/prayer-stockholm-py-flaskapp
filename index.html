@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prayer Times</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        h2 {
+            color: #555;
+            margin-bottom: 10px;
+        }
+        .content {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+        }
+        .prayer-times, .current-prayer {
+            width: 45%;
+        }
+        .prayer-times ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .prayer-times li {
+            margin-bottom: 10px;
+        }
+        .current-prayer {
+            text-align: right;
+            font-size: 1.5em;
+            color: #333;
+        }
+        .button-container {
+            display: flex;
+            margin-top: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 5px; /* Add a small margin between buttons */
+        }
+        button:last-child {
+            margin-right: 0; /* Remove margin from last button */
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .countdown-container {
+            margin-top: 20px;
+            color: #333;
+            text-align: center;
+        }
+        
+
+        #theme-toggle {
+  position: fixed;
+  bottom: 20px; /* Adjust the distance from the bottom */
+  left: 20px; /* Adjust the distance from the left */
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+#theme-toggle img {
+  width: 30px; /* Adjust the size of the settings icon */
+  height: 30px;
+}
+
+        
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Prayer Times</h1>
+        <h2>{{ current_date }}</h2>
+        <button id="theme-toggle" onclick="toggleTheme()">
+            <img src="settings-icon.png" alt="Settings">
+          </button>
+          
+          
+        <div class="content">
+            <div class="prayer-times">
+                {% if prayer_times %}
+                    <ul>
+                        {% for prayer, time in prayer_times.items() %}
+                            <li>{{ prayer }}: {{ time }}</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>Ops there is something Wrong, If this shows more than once please contact hade13m1@gmail.com</p>
+                {% endif %}
+            </div>
+            <div class="current-prayer">
+                {% if current_prayer %}
+                    <p>Current prayer: {{ current_prayer }}</p>
+                {% endif %}
+            </div>
+        </div>
+        <div class="button-container">
+            <form action="/prev" method="post">
+                <button type="submit">Previous</button>
+            </form>
+            <form action="/next" method="post">
+                <button type="submit">Next</button>
+            </form>
+        </div>
+        <div class="countdown-container" id="countdown-container">
+            {% if upcoming_prayer %}
+                <p id="countdown_upcoming">Time left until {{ upcoming_prayer }} Prayer: <span id="countdown_timer">{{ countdown_upcoming }}</span></p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <audio id="prayer-sound" src="/static/prayer-sound.mp3"></audio>
+
+    <script>
+    function updateCountdown(countdownString) {
+        var countdownElement = document.getElementById('countdown_timer');
+        var prayerSound = document.getElementById('prayer-sound');
+        var timeParts = countdownString.split(':');
+        var hours = parseInt(timeParts[0]);
+        var mins = parseInt(timeParts[1]);
+        var secs = parseInt(timeParts[2]);
+        
+        function update() {
+            if (hours > 0 || mins > 0 || secs > 0) {
+                if (secs === 0) {
+                    if (mins === 0) {
+                        if (hours > 0) {
+                            hours--;
+                            mins = 59;
+                            secs = 59;
+                        }
+                    } else {
+                        mins--;
+                        secs = 59;
+                    }
+                } else {
+                    secs--;
+                }
+                
+                countdownElement.textContent = hours + ' hrs ' + mins + ' mins ' + secs + ' secs';
+            } else {
+                countdownElement.textContent = 'Prayer Time!';
+                prayerSound.play();
+            }
+        }
+        
+        setInterval(update, 1000); // Update countdown every second
+    }
+    
+    {% if countdown_upcoming %}
+        updateCountdown('{{ countdown_upcoming }}');
+    {% endif %}
+    </script>
+</body>
+</html>
